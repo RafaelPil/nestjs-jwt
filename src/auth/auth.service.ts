@@ -12,6 +12,39 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async signupLocal(dto: AuthDto): Promise<Tokens> {
+    const hash = await this.hashData(dto.password);
+
+    const newUser = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        hash,
+      },
+    });
+
+    const tokens = await this.getTokens(newUser.id, newUser.email);
+    await this.updateRtHash(newUser.id, tokens.refresh_token);
+    return tokens;
+  }
+
+  signinpLocal() {}
+
+  logout() {}
+
+  refreshTokens() {}
+
+  async updateRtHash(userId: number, rt: string) {
+    const hash = this.hashData(rt);
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        hashedRt: (await hash).toString(),
+      },
+    });
+  }
+
   hashData(data: string) {
     return bcrypt.hash(data, 10);
   }
@@ -45,37 +78,4 @@ export class AuthService {
       refresh_token: rt,
     };
   }
-
-  async signupLocal(dto: AuthDto): Promise<Tokens> {
-    const hash = await this.hashData(dto.password);
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        hash,
-      },
-    });
-
-    const tokens = await this.getTokens(newUser.id, newUser.email);
-    await this.updateRtHash(newUser.id, tokens.refresh_token);
-    return tokens;
-  }
-
-  async updateRtHash(userId: number, rt: string) {
-    const hash = this.hashData(rt);
-    await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        hashedRt: (await hash).toString(),
-      },
-    });
-  }
-
-  signinpLocal() {}
-
-  logout() {}
-
-  refreshTokens() {}
 }
