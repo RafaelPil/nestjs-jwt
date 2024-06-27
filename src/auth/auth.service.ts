@@ -62,7 +62,9 @@ export class AuthService {
     });
   }
 
-  refreshTokens() {}
+  refreshTokens() {
+    
+  }
 
   async updateRtHash(userId: number, rt: string) {
     const hash = this.hashData(rt);
